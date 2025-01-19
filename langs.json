@@ -1,0 +1,87 @@
+{
+  "lang_prompt": {
+    "Русский": "Выберите язык / Тіл таңдаңыз / Choose your language",
+    "English": "Please select your language / Выберите язык / Тіл таңдаңыз",
+    "Қазақша": "Тіл таңдаңыз / Выберите язык / Choose your language"
+  },
+  "error_no_request": {
+    "Русский": "Вы не написали ваш запрос. `/help <Ваш запрос>`",
+    "English": "You haven't written your request. `/help <your request>`",
+    "Қазақша": "Сұрағыңызды жазбадыңыз. `/help <сіздің сұрағыңыз>`"
+  },
+  "error_has_open_session": {
+    "Русский": "Вы еще не завершили свою предыдущую сессию. Чтобы это сделать, напишите `/close`",
+    "English": "You have an open session. To close it, type `/close`",
+    "Қазақша": "Сізде ашық сессия бар. Жабу үшін `/close` жазыңыз"
+  },
+  "request_sent": {
+    "Русский": "Ваш запрос был отправлен. Если хотите добавить что-то еще, пишите дальше без `/help` :)",
+    "English": "Your request was sent. If you want to add more, just type away without `/help` :)",
+    "Қазақша": "Сұрағыңыз жіберілді. Тағы қосқыңыз келсе, жай `/help` жазбай жалғастырыңыз :)"
+  },
+  "forum_failed": {
+    "Русский": "Невозможно создать форум-топик. Будем работать без него.",
+    "English": "Cannot create a forum topic. Will proceed without it.",
+    "Қазақша": "Форум тақырыбын құру мүмкін емес. Онсыз жалғастырамыз."
+  },
+  "start_instructions": {
+    "Русский": "Чтобы начать, введите `/help <Ваш запрос>`",
+    "English": "To start, type `/help <your request>`",
+    "Қазақша": "Бастау үшін `/help <сіздің сұрағыңыз>` жазыңыз"
+  },
+  "session_not_started": {
+    "Русский": "Диалог не начат.",
+    "English": "Session not started.",
+    "Қазақша": "Сеанс басталмады."
+  },
+  "session_closed": {
+    "Русский": "Ваша сессия была закончена!",
+    "English": "Your session ended!",
+    "Қазақша": "Сіздің сессияңыз аяқталды!"
+  },
+  "forum_close_failed": {
+    "Русский": "Не удалось закрыть форум-топик. Возможно, нет прав или неверный ID.",
+    "English": "Failed to close the forum topic. Check permissions or ID.",
+    "Қазақша": "Форум тақырыбын жабу мүмкін болмады. Рұқсаттар немесе ID қате болуы мүмкін."
+  },
+  "dialog_ended": {
+    "Русский": "Диалог завершен. Если хотите продолжить позже — просто напишите /help <Ваш запрос>.",
+    "English": "Conversation ended. If you want to continue later, just type /help <your request>.",
+    "Қазақша": "Диалог аяқталды. Кейін жалғастыру үшін /help <сіздің сұрағыңыз> жазыңыз."
+  },
+  "dialog_inactive": {
+    "Русский": "Диалог не активен. Если хотите начать, введите /start",
+    "English": "No active session. To begin, type /start",
+    "Қазақша": "Тақырып белсенді емес. Бастау үшін /start жазыңыз"
+  },
+  "inactivity_closed": {
+    "Русский": "Ваш запрос был закрыт из-за бездействия более 3 часов. Создайте новый запрос с /help <Ваш запрос>.",
+    "English": "Your request has been closed due to 3+ hours of inactivity. Please create a new one with /help <your request>.",
+    "Қазақша": "3+ сағатқа белсенділік болмағандықтан сұрағыңыз жабылды. Жаңа сұранысты /help <сіздің сұрағыңыз> арқылы бастаңыз."
+  },
+  "button_start": {
+    "Русский": "Начать",
+    "English": "Start",
+    "Қазақша": "Бастау"
+  },
+  "button_decline": {
+    "Русский": "Не соглашаюсь",
+    "English": "Decline",
+    "Қазақша": "Қабылдамаймын"
+  },
+  "button_finish": {
+    "Русский": "Закончить",
+    "English": "Finish",
+    "Қазақша": "Аяқтау"
+  },
+  "disclaimer_text": {
+    "Русский": "Пример условия использования. Будьте осторожны!",
+    "English": "Some example of disclaimer. Disclaimer! Be careful!",
+    "Қазақша": "Пайдалану шарттарының мысалы. Сақ болыңыз!"
+  },
+  "no_active_ticket": {
+    "Русский": "У вас нет активного запроса. Чтобы начать, введите `/help <Ваш запрос>`",
+    "English": "No open requests. To begin, type `/help <your request>`",
+    "Қазақша": "Сізде белсенді сұраныс жоқ. Бастау үшін `/help <сіздің сұрағыңыз>` жазыңыз"
+  }
+}
