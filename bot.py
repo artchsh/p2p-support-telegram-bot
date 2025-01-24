@@ -22,35 +22,45 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def start(message):
+    """Handles the /start command."""
     handle_start(bot, message, cursor)
 
 @bot.message_handler(commands=['switch_language'])
 def switch_language(message):
+    """Switches language on user request."""
     handle_switch_language(bot, message, cursor)
 
 @bot.message_handler(func=lambda m: m.text in ["Русский", "English", "Қазақша"] and m.chat.type == 'private')
 def set_language(message):
+    """Sets user language from private chat input."""
     handle_set_language(bot, message, cursor, db)
 
 @bot.message_handler(func=lambda m: m.text in ["Начать", "Не соглашаюсь"] and m.chat.type == 'private')
 def disclaimer_response(message):
+    """Handles the two disclaimer responses."""
     handle_disclaimer_response(bot, message, cursor)
 
 @bot.message_handler(commands=['help'])
 def help_command(message):
+    """Opens a help session."""
     handle_help(bot, message, cursor, db)
 
 @bot.message_handler(commands=['close'])
 def close_command(message):
+    """Closes an active user session."""
     handle_close(bot, message, cursor, db)
 
 @bot.message_handler(commands=['close_topic'])
 def close_topic_command(message):
+    """Closes the topic from forum side."""
     handle_close_topic(bot, message, cursor, db)
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
+    """Forwards messages and handles various text responses."""
     handle_text_messages(bot, message, cursor, db)
     log_message(cursor, db, message.from_user.id, message.message_thread_id, message.text, supporter_id=message.from_user.id)
 
-bot.polling(non_stop=True, interval=2)
+if __name__ == '__main__':
+    # Commented out the direct polling to allow control from web app
+    bot.polling(non_stop=True, interval=2)

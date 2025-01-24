@@ -28,6 +28,7 @@ cursor.execute('''
 ''')
 
 def checkHelpTable():
+    """Ensures the helps table exists, used for local dev environment."""
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS helps (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,6 +47,7 @@ with open("langs.json", "r", encoding="utf-8") as f:
     LANG_TEXTS = json.load(f)
 
 def get_text(key, chat_id, cursor):
+    """Retrieves localized text from langs.json based on user language."""
     cursor.execute("SELECT lang FROM language WHERE chat_id=?", (chat_id,))
     row = cursor.fetchone()
     user_lang = row[0] if row else "English"
@@ -54,6 +56,7 @@ def get_text(key, chat_id, cursor):
 
 @bot.message_handler(commands=['start'])
 def start(message):
+    """Handles /start command for language selection."""
     # Ask user for preferred language
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     markup.row("Русский", "English", "Қазақша")
@@ -61,12 +64,14 @@ def start(message):
 
 @bot.message_handler(commands=['switch_language'])
 def switch_language(message):
+    """Handles /switch_language command."""
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     markup.row("Русский", "English", "Қазақша")
     bot.send_message(message.chat.id, get_text("lang_prompt", message.chat.id, cursor), reply_markup=markup)
 
 @bot.message_handler(func=lambda m: m.text in ["Русский", "English", "Қазақша"] and m.chat.type == 'private')
 def set_language(message):
+    """Sets user language and shows disclaimer."""
     # Save user language
     cursor.execute('REPLACE INTO language (chat_id, lang) VALUES (?, ?)', (message.chat.id, message.text))
     db.commit()
@@ -81,18 +86,21 @@ def set_language(message):
 
 @bot.message_handler(func=lambda m: m.text in [get_text("button_start", m.chat.id, cursor), get_text("button_decline", m.chat.id, cursor)] and m.chat.type == 'private')
 def disclaimer_response(message):
+    """Processes the user's response to the disclaimer."""
     if message.text == get_text("button_start", message.chat.id, cursor):
         bot.send_message(message.chat.id, get_text("start_instructions", message.chat.id, cursor), reply_markup=end_markup(message.chat.id, cursor))
     else:
         bot.send_message(message.chat.id, get_text("session_not_started", message.chat.id, cursor))
 
 def end_markup(chat_id, cursor):
+    """Generates finishing button markup."""
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(get_text("button_finish", chat_id, cursor))
     return kb
 
 @bot.message_handler(commands=['help'])
 def help(message: types.Message):
+    """Processes /help command, creates forum topic, etc."""
     # dividing text by space
     txt_list = message.text.split(" ")
     # checking if text contains problem
@@ -142,7 +150,7 @@ def help(message: types.Message):
     
 @bot.message_handler(commands=['close'])
 def close(message: types.Message):
-    
+    """Processes /close command to end session."""
     # get user info from records
     _SQL = '''
         SELECT *
@@ -178,6 +186,7 @@ def close(message: types.Message):
 # this is any text handler
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message: types.Message):
+    """Handles text messages and forwards them as needed."""
     # Handle "Закончить" button
     if message.text == get_text("button_finish", message.chat.id, cursor):
         _SQL = '''
@@ -262,4 +271,4 @@ def get_text_messages(message: types.Message):
     cursor.execute('UPDATE helps SET last_message_time=datetime("now") WHERE kitten_id=?', (message.from_user.id,))
     db.commit()
 
-bot.polling(non_stop=True, interval=2)
+# bot.polling(non_stop=True, interval=2)  # Commented out to prevent auto-run

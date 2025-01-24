@@ -1,16 +1,21 @@
-import os, json
-from dotenv import load_dotenv
-load_dotenv()
-CHAT_ID = int(os.getenv("CHAT_ID", "-1"))
-
+import os
+import json
 import telebot
 from telebot import types
 from datetime import datetime, timedelta
 from translations import get_text
+from colorama import init as colorama_init, Fore, Style
 
+colorama_init()
+
+print(f"{Fore.GREEN}✔ Bot starting at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{Style.RESET_ALL}")
+print(f"{Fore.GREEN}🚀 Bot is now up and running!{Style.RESET_ALL}")
+
+CHAT_ID = int(os.getenv("CHAT_ID", "-1"))
 ENABLE_LOGGING = int(os.getenv("ENABLE_LOGGING", "0"))
 
 def log_message(cursor, db, kitten_id, forum_id, message, supporter_id=None):
+    """Logs user messages and supporters in the database."""
     if ENABLE_LOGGING:
         cursor.execute('SELECT messages, supporters_ids FROM logs WHERE kitten_id=? AND forum_id=?', (kitten_id, forum_id))
         row = cursor.fetchone()
@@ -28,16 +33,20 @@ def log_message(cursor, db, kitten_id, forum_id, message, supporter_id=None):
         db.commit()
 
 def handle_start(bot, message, cursor):
+    """Sends language selection to the user."""
+    print(f"{Fore.YELLOW}🗨 handle_start -> {message.text}{Style.RESET_ALL}")
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     markup.row("Русский", "English", "Қазақша")
     bot.send_message(message.chat.id, "Please select your language / Выберите язык / Тіл таңдаңыз", reply_markup=markup)
 
 def handle_switch_language(bot, message, cursor):
+    """Prompts user to switch language."""
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     markup.row("Русский", "English", "Қазақша")
     bot.send_message(message.chat.id, get_text("lang_prompt", message.chat.id, cursor), reply_markup=markup)
 
 def handle_set_language(bot, message, cursor, db):
+    """Saves user's chosen language and shows disclaimer."""
     cursor.execute('REPLACE INTO language (chat_id, lang) VALUES (?, ?)', (message.chat.id, message.text))
     db.commit()
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -48,17 +57,20 @@ def handle_set_language(bot, message, cursor, db):
     bot.send_message(message.chat.id, "Some example of disclaimer. Disclaimer! Be careful! Ahtung!", reply_markup=markup)
 
 def handle_disclaimer_response(bot, message, cursor):
+    """Processes user's response to the disclaimer."""
     if message.text == get_text("button_start", message.chat.id, cursor):
         bot.send_message(message.chat.id, get_text("start_instructions", message.chat.id, cursor), reply_markup=end_markup(message.chat.id, cursor))
     elif message.text == get_text("button_decline", message.chat.id, cursor):
         bot.send_message(message.chat.id, get_text("session_not_started", message.chat.id, cursor))
 
 def end_markup(chat_id, cursor):
+    """Generates finishing button markup."""
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(get_text("button_finish", chat_id, cursor))
     return kb
 
 def handle_help(bot, message, cursor, db):
+    """Handles /help command and opens a new support session."""
     txt_list = message.text.split(" ")
     if len(txt_list) == 1:
         bot.send_message(message.from_user.id, get_text("error_no_request", message.from_user.id, cursor), parse_mode="Markdown", reply_markup=end_markup(message.chat.id, cursor))
@@ -92,6 +104,7 @@ def handle_help(bot, message, cursor, db):
     bot.send_message(message.from_user.id, get_text("request_sent", message.from_user.id, cursor), parse_mode='Markdown', reply_markup=end_markup(message.chat.id, cursor))
 
 def handle_close(bot, message, cursor, db):
+    """Handles /close command to end session."""
     _SQL = '''SELECT * FROM helps WHERE kitten_id = ?'''
     cursor.execute(_SQL, (message.from_user.id,))
     result = cursor.fetchall()
@@ -108,6 +121,7 @@ def handle_close(bot, message, cursor, db):
             db.commit()
 
 def handle_close_topic(bot, message, cursor, db):
+    """Handles /close_topic command in forum to close session."""
     # Only allow this command in forum topics
     if message.chat.id != CHAT_ID or message.message_thread_id is None:
         return
@@ -130,6 +144,8 @@ def handle_close_topic(bot, message, cursor, db):
                         reply_to_message_id=message.message_thread_id)
 
 def handle_text_messages(bot, message, cursor, db):
+    """Handles all other text messages (both from user and supporters)."""
+    print(f"{Fore.CYAN}💬 Received from {message.chat.id} at {datetime.now().strftime('%H:%M:%S')} -> {message.text}{Style.RESET_ALL}")
     if message.text == get_text("button_finish", message.chat.id, cursor):
         _SQL = '''SELECT * FROM helps WHERE kitten_id = ?'''
         cursor.execute(_SQL, (message.from_user.id,))
@@ -186,5 +202,8 @@ def handle_text_messages(bot, message, cursor, db):
     if "chat" in message.text:
         bot.send_message(message.chat.id, f"Chat ID: {message.chat.id} \n Your id: {message.from_user.id}", reply_markup=end_markup(message.chat.id, cursor))
 
-    cursor.execute('UPDATE helps SET last_message_time=datetime("now") WHERE kitten_id=?', (message.from_user.id,))
-    db.commit()
+    try:
+        cursor.execute('UPDATE helps SET last_message_time=datetime("now") WHERE kitten_id=?', (message.from_user.id,))
+        db.commit()
+    except Exception as e:
+        print(f"{Fore.RED}✖ DB error: {e}{Style.RESET_ALL}")

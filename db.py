@@ -5,6 +5,7 @@ import sqlite3
 import psycopg2
 
 def init_db():
+    """Initializes either PostgreSQL (prod) or SQLite (dev) database connection and returns db and cursor."""
     env = os.getenv("ENV", "DEV")
     if env == "PROD" and os.getenv("POSTGRES_USER") != "":
         db = psycopg2.connect(
@@ -20,6 +21,7 @@ def init_db():
     return db, cursor
 
 def checkHelpTable(cursor, db):
+    """Creates the helps table if it doesn't exist."""
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS helps (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,6 +34,7 @@ def checkHelpTable(cursor, db):
     db.commit()
 
 def create_language_table(cursor):
+    """Creates the language table if it doesn't exist."""
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS language (
             chat_id INTEGER PRIMARY KEY,
@@ -41,6 +44,7 @@ def create_language_table(cursor):
     db.commit()
 
 def create_logs_table(cursor):
+    """Creates the logs table if it doesn't exist."""
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS logs (
             id SERIAL PRIMARY KEY,
