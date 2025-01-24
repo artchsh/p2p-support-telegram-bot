@@ -11,7 +11,8 @@ from handlers import (
     handle_help,
     handle_close,
     handle_text_messages,
-    handle_close_topic  # Add this import
+    handle_close_topic,
+    log_message
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -50,5 +51,6 @@ def close_topic_command(message):
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     handle_text_messages(bot, message, cursor, db)
+    log_message(cursor, db, message.from_user.id, message.message_thread_id, message.text, supporter_id=message.from_user.id)
 
 bot.polling(non_stop=True, interval=2)

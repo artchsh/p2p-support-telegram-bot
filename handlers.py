@@ -1,4 +1,4 @@
-import os
+import os, json
 from dotenv import load_dotenv
 load_dotenv()
 CHAT_ID = int(os.getenv("CHAT_ID", "-1"))
@@ -7,6 +7,25 @@ import telebot
 from telebot import types
 from datetime import datetime, timedelta
 from translations import get_text
+
+ENABLE_LOGGING = int(os.getenv("ENABLE_LOGGING", "0"))
+
+def log_message(cursor, db, kitten_id, forum_id, message, supporter_id=None):
+    if ENABLE_LOGGING:
+        cursor.execute('SELECT messages, supporters_ids FROM logs WHERE kitten_id=? AND forum_id=?', (kitten_id, forum_id))
+        row = cursor.fetchone()
+        if row:
+            messages = json.loads(row[0])
+            supporters_ids = json.loads(row[1])
+            messages.append(message)
+            if supporter_id and supporter_id not in supporters_ids:
+                supporters_ids.append(supporter_id)
+            cursor.execute('UPDATE logs SET messages=?, supporters_ids=? WHERE kitten_id=? AND forum_id=?', (json.dumps(messages), json.dumps(supporters_ids), kitten_id, forum_id))
+        else:
+            messages = [message]
+            supporters_ids = [supporter_id] if supporter_id else []
+            cursor.execute('INSERT INTO logs (kitten_id, forum_id, messages, supporters_ids) VALUES (?, ?, ?, ?)', (kitten_id, forum_id, json.dumps(messages), json.dumps(supporters_ids)))
+        db.commit()
 
 def handle_start(bot, message, cursor):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -66,6 +85,7 @@ def handle_help(bot, message, cursor, db):
         if "/help" in txt_list:
             txt_list.remove("/help")
         bot.send_message(CHAT_ID, ' '.join(txt_list), reply_to_message_id=forum_topic.message_thread_id, reply_markup=end_markup(message.chat.id, cursor))
+        log_message(cursor, db, message.from_user.id, forum_topic.message_thread_id, ' '.join(txt_list))
     except telebot.apihelper.ApiTelegramException:
         bot.send_message(CHAT_ID, get_text("forum_failed", message.from_user.id, cursor), reply_markup=end_markup(message.chat.id, cursor))
     
@@ -151,6 +171,7 @@ def handle_text_messages(bot, message, cursor, db):
             )
             return
         bot.send_message(CHAT_ID, message.text, reply_to_message_id=result[0][2], reply_markup=end_markup(message.chat.id, cursor))
+        log_message(cursor, db, message.from_user.id, result[0][2], message.text)
             
     if message.chat.id == CHAT_ID:
         if message.message_thread_id != None:
@@ -160,6 +181,7 @@ def handle_text_messages(bot, message, cursor, db):
             if len(result) == 0:
                 return
             bot.send_message(result[0][1], message.text, parse_mode='Markdown', reply_markup=end_markup(message.chat.id, cursor))
+            log_message(cursor, db, result[0][1], message.message_thread_id, message.text, supporter_id=message.from_user.id)
 
     if "chat" in message.text:
         bot.send_message(message.chat.id, f"Chat ID: {message.chat.id} \n Your id: {message.from_user.id}", reply_markup=end_markup(message.chat.id, cursor))

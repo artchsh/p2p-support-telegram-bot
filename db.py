@@ -40,6 +40,19 @@ def create_language_table(cursor):
     ''')
     db.commit()
 
+def create_logs_table(cursor):
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS logs (
+            id SERIAL PRIMARY KEY,
+            kitten_id INT,
+            supporters_ids TEXT,
+            forum_id INT,
+            messages TEXT
+        )
+    ''')
+    db.commit()
+
 db, cursor = init_db()
 checkHelpTable(cursor, db)
 create_language_table(cursor)
+create_logs_table(cursor)
