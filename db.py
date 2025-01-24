@@ -2,17 +2,16 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 import sqlite3
+import psycopg2
 
 def init_db():
     env = os.getenv("ENV", "DEV")
-    if env == "PROD" and os.getenv("MYSQL_USER") != "":
-        exit()
-        import mysql.connector
-        db = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
+    if env == "PROD" and os.getenv("POSTGRES_USER") != "":
+        db = psycopg2.connect(
+            host=os.getenv("POSTGRES_HOST"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD"),
+            database=os.getenv("POSTGRES_DATABASE")
         )
         cursor = db.cursor()
     else:
