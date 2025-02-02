@@ -1,0 +1,4 @@
+env
+.gitattributes
+.gitignore
+__pycache__

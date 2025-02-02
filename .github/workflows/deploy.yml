@@ -29,18 +29,21 @@ jobs:
           # Update .env file
           echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
           echo "CHAT_ID=${{ secrets.CHAT_ID }}" >> .env
-          echo "POSTGRES_USER=octoberskyler" >> .env
-          echo "POSTGRES_PASSWORD=kimep" >> .env
-          echo "POSTGRES_HOST=db" >> .env
-          echo "POSTGRES_DATABASE=peer2peer" >> .env
+          echo "MYSQL_USER=octoberskyler" >> .env
+          echo "MYSQL_ROOT_PASSWORD=kimep" >> .env
+          echo "MYSQL_HOST=db" >> .env
+          echo "MYSQL_DATABASE=peer2peer" >> .env
           echo "ENABLE_LOGGING=${{ secrets.ENABLE_LOGGING }}" >> .env
-          echo "ENV=PROD" >> .env
+
+          # Create files for manually stopping and starting containers
+          echo "docker-compose down" > stop.sh
+          echo "docker-compose up --build -d" > start.sh
 
           # Pull the latest changes from GitHub
           git pull origin main
 
           # Backup database before deploying
-          docker exec postgres-db pg_dump -U octoberskyler peer2peer > backup_$(date +%F_%H-%M-%S).sql
+          docker exec db mysqldump -u octoberskyler -p kimep peer2peer > backup_$(date +%F_%H-%M-%S).sql
 
           # Stop and remove old containers (except database)
           docker-compose down

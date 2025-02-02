@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   bot:
     build: .
@@ -13,44 +11,42 @@ services:
       db:
         condition: service_healthy
     environment:
-      POSTGRES_USER: octoberskyler
-      POSTGRES_PASSWORD: kimep
-      POSTGRES_HOST: db
-      POSTGRES_DATABASE: peer2peer
-      ENV: PROD
+      MYSQL_USER: octoberskyler
+      MYSQL_PASSWORD: kimep
+      MYSQL_HOST: db
+      MYSQL_DATABASE: peer2peer
 
   db:
-    image: postgres:17
-    container_name: postgres-db
+    image: mysql:9.2
+    container_name: mysql-db
     restart: always
     environment:
-      POSTGRES_USER: octoberskyler
-      POSTGRES_PASSWORD: kimep
-      POSTGRES_DB: peer2peer
+      MYSQL_ROOT_PASSWORD: kimep
+      MYSQL_USER: octoberskyler
+      MYSQL_PASSWORD: kimep
+      MYSQL_DATABASE: peer2peer
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U octoberskyler -d peer2peer"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@artchsh.kz
-      PGADMIN_DEFAULT_PASSWORD: kimep
+      PMA_HOST: db
+      PMA_USER: octoberskyler
+      PMA_PASSWORD: kimep
     ports:
       - "5050:80"
     depends_on:
       - db
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
 
 volumes:
-  postgres_data:
-  pgadmin_data:
+  mysql_data:
