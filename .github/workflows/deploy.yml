@@ -14,17 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create .env file
-        run: |
-          echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
-          echo "CHAT_ID=${{ secrets.CHAT_ID }}" >> .env
-          echo "POSTGRES_USER=octoberskyler" >> .env
-          echo "POSTGRES_PASSWORD=kimep" >> .env
-          echo "POSTGRES_HOST=db" >> .env
-          echo "POSTGRES_DATABASE=peer2peer" >> .env
-          echo "ENABLE_LOGGING=1" >> .env
-          echo "ENV=PROD" >> .env
-
       # Set up SSH access to your DigitalOcean droplet
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
@@ -36,6 +25,16 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no root@${{ secrets.DROPLET_IP }} << 'EOF'
           cd /root/p2p-support-telegram-bot
+
+          # Update .env file
+          echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
+          echo "CHAT_ID=${{ secrets.CHAT_ID }}" >> .env
+          echo "POSTGRES_USER=octoberskyler" >> .env
+          echo "POSTGRES_PASSWORD=kimep" >> .env
+          echo "POSTGRES_HOST=db" >> .env
+          echo "POSTGRES_DATABASE=peer2peer" >> .env
+          echo "ENABLE_LOGGING=${{ secrets.ENABLE_LOGGING }}" >> .env
+          echo "ENV=PROD" >> .env
 
           # Pull the latest changes from GitHub
           git pull origin main
