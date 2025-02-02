@@ -75,9 +75,9 @@
     "Қазақша": "Аяқтау"
   },
   "disclaimer_text": {
-    "Русский": "Пример условия использования. Будьте осторожны!",
-    "English": "Some example of disclaimer. Disclaimer! Be careful!",
-    "Қазақша": "Пайдалану шарттарының мысалы. Сақ болыңыз!"
+    "Русский": "Если вы продолжаете, то подтверждаете свое согласие с пользовательским соглашением и дисклеймером, доступным по ссылке: [https://artchsh.kz/user_agreement.html](https://artchsh.kz/user_agreement.html) (обязательно к прочтению).",
+    "English": "If you continue, you agree to the user agreement and disclaimer available at: [https://artchsh.kz/user_agreement.html](https://artchsh.kz/user_agreement.html) (required reading).",
+    "Қазақша": "Жалғастырсаңыз, пайдаланушы келісімімен келісіміңізді растайсыз және мына сілтеме бойынша бас тарту туралы мәлімдеме аласыз: [https://artchsh.kz/user_agreement.html](https://artchsh.kz/user_agreement.html) (оқу қажет)."
   },
   "no_active_ticket": {
     "Русский": "У вас нет активного запроса. Чтобы начать, введите `/help <Ваш запрос>`",

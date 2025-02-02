@@ -1,0 +1,54 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches:
+      - main  # Change to your default branch if different
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
+          echo "CHAT_ID=${{ secrets.CHAT_ID }}" >> .env
+          echo "POSTGRES_USER=octoberskyler" >> .env
+          echo "POSTGRES_PASSWORD=kimep" >> .env
+          echo "POSTGRES_HOST=db" >> .env
+          echo "POSTGRES_DATABASE=peer2peer" >> .env
+          echo "ENABLE_LOGGING=1" >> .env
+          echo "ENV=PROD" >> .env
+
+      # Set up SSH access to your DigitalOcean droplet
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Connect to the droplet and deploy
+      - name: Deploy on Droplet
+        run: |
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.DROPLET_IP }} << 'EOF'
+          cd /root/p2p-support-telegram-bot
+
+          # Pull the latest changes from GitHub
+          git pull origin main
+
+          # Backup database before deploying
+          docker exec postgres-db pg_dump -U octoberskyler peer2peer > backup_$(date +%F_%H-%M-%S).sql
+
+          # Stop and remove old containers (except database)
+          docker-compose down
+
+          # Rebuild and start the new version
+          docker-compose up --build -d
+
+          # Clean up unused Docker images
+          docker system prune -f
+          EOF
