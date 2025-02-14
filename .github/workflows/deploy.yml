@@ -28,6 +28,7 @@ jobs:
 
           # Update .env file
           echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
+          echo "ADMIN_CHAT_ID=${{ secrets.ADMIN_CHAT_ID }}" >> .env
           echo "CHAT_ID=${{ secrets.CHAT_ID }}" >> .env
           echo "MYSQL_USER=octoberskyler" >> .env
           echo "MYSQL_ROOT_PASSWORD=kimep" >> .env

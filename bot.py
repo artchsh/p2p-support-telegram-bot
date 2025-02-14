@@ -11,6 +11,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = int(os.getenv("CHAT_ID", "-1"))
 ENABLE_LOGGING = bool(int(os.getenv("ENABLE_LOGGING", "1")))
+ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "-1"))
 
 print(f"[+] Bot starting at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
@@ -131,11 +132,19 @@ def process_message_queue():
     while True:
         try:
             func, args, kwargs = message_queue.get()
-            func(*args, **kwargs)
+            try:
+                func(*args, **kwargs)
+            except telebot.apihelper.ApiTelegramException as te:
+                print("[-] Telegram API error in queued message:", te)
+                report_error(te)
+            except Exception as e:
+                print("[-] Error in queued message:", e)
+                report_error(e)
             time.sleep(0.5)  # adjust sleep value for rate limit
             message_queue.task_done()
         except Exception as e:
             print("[-] Queue processing error:", e)
+            report_error(e)
 
 # Start the worker thread for processing the message queue
 worker_thread = threading.Thread(target=process_message_queue, daemon=True)
@@ -143,6 +152,13 @@ worker_thread.start()
 
 # Initialize bot
 bot = telebot.TeleBot(BOT_TOKEN)
+
+# Report error helper
+def report_error(error_message):
+    try:
+        bot.send_message(ADMIN_CHAT_ID, f"Full error: {error_message}")
+    except Exception as sendErr:
+        print("[-] Failed to send error message to admin:", sendErr)
 
 # Save original send_message
 _original_send_message = bot.send_message
@@ -236,7 +252,16 @@ def help_command(message):
     result = cursor.fetchone()
     
     try:
-        forum_topic = bot.create_forum_topic(CHAT_ID, f"Kitten #{result['id']}")
+        try:
+            forum_topic = bot.create_forum_topic(CHAT_ID, f"Kitten #{result['id']}")
+        except telebot.apihelper.ApiTelegramException as te:
+            print("[-] Telegram API error during forum topic creation:", te)
+            report_error(te)
+            bot.send_message(message.from_user.id,
+                            get_text("forum_failed", message.from_user.id, cursor),
+                            reply_markup=end_markup(message.chat.id))
+            return
+
         cursor.execute('UPDATE helps SET thread_id = %s WHERE kitten_id = %s', 
                       (forum_topic.message_thread_id, message.from_user.id))
         db.commit()
@@ -252,8 +277,9 @@ def help_command(message):
                         get_text("request_sent", message.from_user.id, cursor),
                         parse_mode='Markdown',
                         reply_markup=end_markup(message.chat.id))
-    except telebot.apihelper.ApiTelegramException as e:
-        print(f"[-] Failed to create forum topic: {e}")
+    except Exception as e:
+        print("[-] Error in help_command:", e)
+        report_error(e)
         bot.send_message(message.from_user.id,
                         get_text("forum_failed", message.from_user.id, cursor),
                         reply_markup=end_markup(message.chat.id))
@@ -267,14 +293,23 @@ def close_command(message):
     
     if result:
         try:
-            bot.close_forum_topic(CHAT_ID, result['thread_id'])
+            try:
+                bot.close_forum_topic(CHAT_ID, result['thread_id'])
+            except telebot.apihelper.ApiTelegramException as te:
+                print("[-] Telegram API error during forum topic closing:", te)
+                report_error(te)
+                bot.send_message(message.from_user.id,
+                           get_text("forum_close_failed", message.from_user.id, cursor),
+                           reply_markup=end_markup(message.chat.id))
+                return
             bot.send_message(message.from_user.id,
                            get_text("session_closed", message.from_user.id, cursor),
                            reply_markup=end_markup(message.chat.id))
             cursor.execute('DELETE FROM helps WHERE kitten_id = %s', (message.from_user.id,))
             db.commit()
-        except telebot.apihelper.ApiTelegramException as e:
-            print(f"[-] Failed to close forum topic: {e}")
+        except Exception as e:
+            print("[-] Error in close_command:", e)
+            report_error(e)
             bot.send_message(message.from_user.id,
                            get_text("forum_close_failed", message.from_user.id, cursor),
                            reply_markup=end_markup(message.chat.id))
@@ -366,6 +401,11 @@ if __name__ == '__main__':
     while True:
         try:
             bot.polling(non_stop=True, interval=2)
+        except telebot.apihelper.ApiTelegramException as te:
+            print("[-] Polling Telegram API error:", te)
+            report_error(te)
+            time.sleep(5)
         except Exception as e:
-            print(f"[-] Bot polling error: {e}")
+            print("[-] Bot polling error:", e)
+            report_error(e)
             time.sleep(5)
