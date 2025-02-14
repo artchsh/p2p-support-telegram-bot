@@ -2,6 +2,7 @@ import os, json, time, mysql.connector, telebot
 from telebot import types
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+import queue, threading
 
 # Initialize and load environment variables
 load_dotenv()
@@ -122,8 +123,36 @@ def log_message(kitten_id, forum_id, message, supporter_id=None):
     except Exception as e:
         print(f"[-] Logging error: {e}")
 
+# Global message queue for rate-limited sending
+message_queue = queue.Queue()
+
+def process_message_queue():
+    """Process queued message sending with rate limiting"""
+    while True:
+        try:
+            func, args, kwargs = message_queue.get()
+            func(*args, **kwargs)
+            time.sleep(0.5)  # adjust sleep value for rate limit
+            message_queue.task_done()
+        except Exception as e:
+            print("[-] Queue processing error:", e)
+
+# Start the worker thread for processing the message queue
+worker_thread = threading.Thread(target=process_message_queue, daemon=True)
+worker_thread.start()
+
 # Initialize bot
 bot = telebot.TeleBot(BOT_TOKEN)
+
+# Save original send_message
+_original_send_message = bot.send_message
+
+def queued_send_message(*args, **kwargs):
+    """Enqueue send_message calls to respect rate limits"""
+    message_queue.put((_original_send_message, args, kwargs))
+
+# Patch bot.send_message with the queued version
+bot.send_message = queued_send_message
 
 def end_markup(chat_id):
     """Generate keyboard markup with finish button"""
