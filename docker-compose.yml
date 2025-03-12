@@ -1,7 +1,7 @@
 services:
   bot:
     build: .
-    container_name: telegram-bot
+    container_name: jarqyndos-bot
     restart: always
     env_file:
       - .env
@@ -11,42 +11,29 @@ services:
       db:
         condition: service_healthy
     environment:
-      MYSQL_USER: octoberskyler
-      MYSQL_PASSWORD: kimep
-      MYSQL_HOST: db
-      MYSQL_DATABASE: peer2peer
+      POSTGRES_USER: postgresuser
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_HOST: db
+      POSTGRES_DB: peer2peer
+      ENVIRONMENT: production
 
   db:
-    image: mysql:9.2
-    container_name: mysql-db
+    image: postgres:15
+    container_name: jarqyndos-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: kimep
-      MYSQL_USER: octoberskyler
-      MYSQL_PASSWORD: kimep
-      MYSQL_DATABASE: peer2peer
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_USER: postgresuser
+      POSTGRES_DB: peer2peer
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U postgresuser -d peer2peer"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
-    restart: always
-    environment:
-      PMA_HOST: db
-      PMA_USER: octoberskyler
-      PMA_PASSWORD: kimep
-    ports:
-      - "5050:80"
-    depends_on:
-      - db
-
 volumes:
-  mysql_data:
+  postgres_data:
