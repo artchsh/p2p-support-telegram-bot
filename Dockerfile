@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Link to the github repository
-LABEL org.opencontainers.image.source https://github.com/artchsh/p2p-support-telegram-bot
+LABEL org.opencontainers.image.source=https://github.com/artchsh/p2p-support-telegram-bot
 
 # Run the bot
 CMD ["python", "bot.py"]
