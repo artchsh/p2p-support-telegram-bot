@@ -1,7 +1,7 @@
 services:
   bot:
-    build: .
-    container_name: jarqyndos-bot
+    image: ghcr.io/artchsh/p2p-support-telegram-bot:latest
+    container_name: p2p-support-bot
     restart: always
     env_file:
       - .env
@@ -15,11 +15,18 @@ services:
       POSTGRES_PASSWORD: postgrespassword
       POSTGRES_HOST: db
       POSTGRES_DB: peer2peer
+      FLASK_PORT: 5000
       ENVIRONMENT: production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   db:
     image: postgres:15
-    container_name: jarqyndos-db
+    container_name: p2p-support-db
     restart: always
     environment:
       POSTGRES_PASSWORD: postgrespassword

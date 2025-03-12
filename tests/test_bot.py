@@ -1,7 +1,5 @@
-import json
 import pytest
 import bot
-from telebot import types
 
 
 class DummyMessage:

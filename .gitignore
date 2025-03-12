@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 local.db
 .DS_Store
+venv
+.pytest_cache
+push_ghcr.sh

@@ -1,9 +1,8 @@
 import os
 import json
 import time
-import pathlib
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, Text, TIMESTAMP, BigInteger, ForeignKey, select, update, insert, delete, text
+from sqlalchemy import create_engine, Column, Integer, String, Text, TIMESTAMP, BigInteger, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert

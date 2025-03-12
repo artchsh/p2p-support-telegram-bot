@@ -1,4 +1,31 @@
-env
-.gitattributes
+# Environment files
+.env
+.env.example
+
+# Git files
+.git
 .gitignore
-__pycache__
+.gitattributes
+
+# Python artifacts
+__pycache__/
+venv/
+.pytest_cache/
+
+# VS Code files
+.vscode/
+
+# macOS files
+.DS_Store
+
+# Files for testing
+tests/
+
+# Github files
+.github/
+
+# Docker files
+docker-compose.yml
+
+# Other files
+push_ghcr.sh

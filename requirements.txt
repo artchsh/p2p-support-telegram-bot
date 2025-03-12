@@ -1,4 +1,6 @@
-mysql-connector-python==9.2.0
 pyTelegramBotAPI==4.26.0
+pytest==8.3.5
 python-dotenv==1.0.1
-SQLAlchemy==1.4.27
+SQLAlchemy==2.0.39
+psycopg2==2.9.10
+Flask==3.1.0

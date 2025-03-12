@@ -1,8 +1,16 @@
 import os, json, time, telebot, traceback
 from telebot import types
-from datetime import datetime, timedelta
+from datetime import datetime
 from dotenv import load_dotenv
 from db import Database
+from flask import Flask, Response
+import threading
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, 
+                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -11,8 +19,36 @@ CHAT_ID = int(os.getenv("CHAT_ID", "-1"))
 ENABLE_LOGGING = bool(int(os.getenv("ENABLE_LOGGING", "1")))
 ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "-1"))
 RETRY_DELAY = float(os.getenv("RETRY_DELAY", "2.0"))
+FLASK_PORT = int(os.getenv("FLASK_PORT", "5000"))
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
-print(f"[+] Bot starting at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+logger.info(f"Bot starting at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+logger.info(f"Environment: {ENVIRONMENT}")
+
+app = Flask(__name__)
+
+@app.route("/healthcheck")
+def healthcheck():
+    logger.debug("Healthcheck endpoint called")
+    return Response("OK", status=200)
+
+def start_flask():
+    logger.info(f"Starting Flask server on port {FLASK_PORT}")
+    try:
+        app.run(host="0.0.0.0", port=FLASK_PORT, debug=False, use_reloader=False)
+    except Exception as e:
+        logger.error(f"Error starting Flask server: {e}")
+
+# Create and start Flask thread
+flask_thread = threading.Thread(target=start_flask)
+flask_thread.daemon = True
+logger.info("Starting Flask thread")
+flask_thread.start()
+logger.info("Flask thread started")
+
+# Give Flask a moment to start up
+time.sleep(1)
+logger.info("Continuing with bot initialization")
 
 db = Database()
 
@@ -386,28 +422,29 @@ def handle_messages(message: telebot.types.Message):
         report_error(e)
 
 if __name__ == '__main__':
-    print("[+] Bot is now running!")
+    logger.info("[+] Bot is now running!")
     
     try:
-        print(f"[*] Verifying support group (CHAT_ID: {CHAT_ID})...")
+        logger.info(f"[*] Verifying support group (CHAT_ID: {CHAT_ID})...")
         chat_info = bot.get_chat(CHAT_ID)
-        print(f"[+] Support group verified: {chat_info.title}")
+        logger.info(f"[+] Support group verified: {chat_info.title}")
         
         if hasattr(chat_info, 'is_forum') and chat_info.is_forum:
-            print("[+] Support group has forum capability")
+            logger.info("[+] Support group has forum capability")
         else:
-            print("[!] Warning: Support group does not support forum topics")
+            logger.warning("[!] Warning: Support group does not support forum topics")
     except Exception as e:
-        print(f"[-] Error verifying support group: {e}")
+        logger.error(f"[-] Error verifying support group: {e}")
         
     while True:
         try:
+            logger.info("Starting bot polling")
             bot.polling(non_stop=True, interval=1, timeout=20)
         except telebot.apihelper.ApiTelegramException as te:
-            print(f"[-] Polling Telegram API error: {te}")
+            logger.error(f"[-] Polling Telegram API error: {te}")
             report_error(te)
-            time.sleep(5)
+            time.sleep(RETRY_DELAY)
         except Exception as e:
-            print(f"[-] Bot polling error: {e}")
+            logger.error(f"[-] Bot polling error: {e}")
             report_error(e)
-            time.sleep(5)
+            time.sleep(RETRY_DELAY)
