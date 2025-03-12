@@ -6,8 +6,8 @@ on:
       - main
 
 permissions:
-      packages: write
-      contents: read
+  packages: write
+  contents: read
 
 jobs:
   build-and-push:
@@ -55,7 +55,7 @@ jobs:
             echo "ENABLE_LOGGING=${{ secrets.ENABLE_LOGGING }}" >> .env
             
             # Login to GitHub Container Registry
-            echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
             
             # Deploy with docker-compose
             docker-compose pull
