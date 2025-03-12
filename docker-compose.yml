@@ -25,7 +25,7 @@ services:
       start_period: 10s
 
   db:
-    image: postgres:15
+    image: postgres:17.4
     container_name: p2p-support-db
     restart: always
     environment:
